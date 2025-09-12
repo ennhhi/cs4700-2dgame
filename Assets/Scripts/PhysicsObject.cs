@@ -4,7 +4,7 @@ public class PhysicsObject : MonoBehaviour
 {
     [Header("Runtime")]
     public Vector2 velocity;
-    public float castPadding = 0.01f;
+    public float castPadding = 0.02f;
 
     protected Rigidbody2D rb;
     protected bool grounded;
