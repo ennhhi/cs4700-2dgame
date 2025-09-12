@@ -7,20 +7,22 @@ public class PlayerController : PhysicsObject
     [Header("Tuning")]
     public float moveSpeed = 3f;
     public float jumpSpeed = 6.5f;
+    public float coyoteTime = 0.1f; // seconds
 
     [Header("Spawn")]
     public Vector3 startingPosition;
 
     private float desiredX;
+    private float coyoteTimer;
 
-    // For "idle" contact detection with hazards/goals
     private Collider2D col;
-    private readonly Collider2D[] overlapHits = new Collider2D[16];
+    private readonly Collider2D[] contactBuffer = new Collider2D[16];
 
     protected override void Awake()
     {
         base.Awake();
         col = GetComponent<Collider2D>();
+        if (rb != null) rb.useFullKinematicContacts = true;
     }
 
     void Start()
@@ -30,85 +32,54 @@ public class PlayerController : PhysicsObject
 
     void Update()
     {
-        // Horizontal input (-1, 0, 1)
-        float h = Input.GetAxisRaw("Horizontal");
-        if (h > 0f) desiredX = moveSpeed;
-        else if (h < 0f) desiredX = -moveSpeed;
-        else desiredX = 0f;
+        // Update coyote timer based on last physics result
+        coyoteTimer = grounded ? coyoteTime : Mathf.Max(0f, coyoteTimer - Time.deltaTime);
 
-        // Jump only if grounded
-        if (Input.GetButtonDown("Jump") && grounded)
+        // Horizontal input
+        float h = Input.GetAxisRaw("Horizontal");
+        desiredX = (h > 0f) ? moveSpeed : (h < 0f ? -moveSpeed : 0f);
+
+        // Jump: allow while coyote timer is alive
+        if (Input.GetButtonDown("Jump") && coyoteTimer > 0f)
         {
             velocity.y = jumpSpeed;
-            grounded = false;
+            coyoteTimer = 0f; // consume it
         }
     }
 
     protected override void FixedUpdate()
     {
-        // Inject desired X velocity then run base physics (gravity, casts, ground resolve)
         velocity.x = desiredX;
         base.FixedUpdate();
 
-        // ALSO detect hazards/goals even when not moving (overlap at rest)
+        // Detect hazards/goals even when idle
         if (col != null)
         {
-            var filter = new ContactFilter2D();
-            // Include triggers too, in case your hazards/goals use trigger colliders
-            filter.useTriggers = true;
-
-            int count = col.OverlapCollider(filter, overlapHits);
+            int count = col.GetContacts(contactBuffer);
             for (int i = 0; i < count; i++)
             {
-                var other = overlapHits[i];
+                var other = contactBuffer[i];
                 if (!other) continue;
 
-                if (IsWater(other))
-                {
-                    ResetPlayer();
-                    break;
-                }
-                if (IsGoal(other))
-                {
-                    Debug.Log("You win!");
-                }
+                if (IsWater(other)) { ResetPlayer(); break; }
+                if (IsGoal(other))  { Debug.Log("You win!"); }
             }
         }
     }
 
-    // Called by PhysicsObject when vertical motion hits something
     public override void CollideWithVertical(Collider2D other, Vector2 normal)
     {
-        if (IsWater(other))
-        {
-            ResetPlayer();
-        }
-        else if (IsGoal(other))
-        {
-            Debug.Log("You win!");
-        }
+        if (IsWater(other)) ResetPlayer();
+        else if (IsGoal(other)) Debug.Log("You win!");
     }
 
-    // Called by PhysicsObject when horizontal motion hits something
     public override void CollideWithHorizontal(Collider2D other)
     {
-        if (IsWater(other))
-        {
-            ResetPlayer();
-        }
+        if (IsWater(other)) ResetPlayer();
     }
 
-    private bool IsWater(Collider2D other)
-    {
-        // TAG-ONLY
-        return other != null && other.CompareTag("water");
-    }
-
-    private bool IsGoal(Collider2D other)
-    {
-        // TAG-ONLY
-        return other != null && other.CompareTag("goal");
-    }
+    private bool IsWater(Collider2D other) => other != null && other.CompareTag("water");
+    private bool IsGoal(Collider2D other)  => other != null && other.CompareTag("goal");
 
     private void ResetPlayer()
     {

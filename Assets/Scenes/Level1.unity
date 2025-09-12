@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 339997747}
   - component: {fileID: 339997746}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Enemy
   m_TagString: water
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -156,6 +156,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   castPadding: 0.01
+  groundSnapDistance: 0.08
+  separationEpsilon: 0.001
   patrolSpeed: 14
 --- !u!50 &339997747
 Rigidbody2D:
@@ -167,7 +169,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 339997745}
   m_BodyType: 1
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
@@ -290,7 +292,7 @@ Transform:
   m_GameObject: {fileID: 339997745}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.225767, y: 2.51, z: 0}
+  m_LocalPosition: {x: 27.225767, y: 2.73, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5802,7 +5804,7 @@ CompositeCollider2D:
   m_GameObject: {fileID: 658800591}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: ff293039423e1a746b60dab4758f4d69, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5828,7 +5830,7 @@ CompositeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_GeometryType: 0
   m_GenerationType: 0
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.03
   m_ColliderPaths:
   - m_Collider: {fileID: 658800593}
     m_ColliderPaths:
@@ -6180,7 +6182,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.03
 --- !u!4 &1920608198
 Transform:
   m_ObjectHideFlags: 0
@@ -6226,7 +6228,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 1980396704}
   m_BodyType: 1
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
@@ -6304,8 +6306,8 @@ Transform:
   m_GameObject: {fileID: 1980396704}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.15, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalPosition: {x: 0, y: -0.2, z: 0}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 519420032}
@@ -6325,8 +6327,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   castPadding: 0.01
+  groundSnapDistance: 0.08
+  separationEpsilon: 0.001
   moveSpeed: 10
   jumpSpeed: 8
+  coyoteTime: 0.1
   startingPosition: {x: 0, y: 0, z: 0}
 --- !u!70 &1980396710
 CapsuleCollider2D:
@@ -6337,7 +6342,7 @@ CapsuleCollider2D:
   m_GameObject: {fileID: 1980396704}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: ff293039423e1a746b60dab4758f4d69, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -6361,7 +6366,7 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1.01, y: 1.01}
+  m_Size: {x: 0.9, y: 1}
   m_Direction: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
