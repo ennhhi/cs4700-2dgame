@@ -15,13 +15,11 @@ public class PlayerController : PhysicsObject
     private float desiredX;
     private float coyoteTimer;
 
-    private Collider2D col;
     private readonly Collider2D[] contactBuffer = new Collider2D[16];
 
     protected override void Awake()
     {
         base.Awake();
-        col = GetComponent<Collider2D>();
         if (rb != null) rb.useFullKinematicContacts = true;
     }
 
