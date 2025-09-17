@@ -50,7 +50,7 @@ public class PlayerController : PhysicsObject
         velocity.x = desiredX;
         base.FixedUpdate();
 
-        // Detect hazards/goals even when idle
+        // Detect hazards even when idle
         if (col != null)
         {
             int count = col.GetContacts(contactBuffer);
@@ -60,7 +60,6 @@ public class PlayerController : PhysicsObject
                 if (!other) continue;
 
                 if (IsWater(other)) { ResetPlayer(); break; }
-                if (IsGoal(other))  { Debug.Log("You win!"); }
             }
         }
     }
@@ -68,7 +67,6 @@ public class PlayerController : PhysicsObject
     public override void CollideWithVertical(Collider2D other, Vector2 normal)
     {
         if (IsWater(other)) ResetPlayer();
-        else if (IsGoal(other)) Debug.Log("You win!");
     }
 
     public override void CollideWithHorizontal(Collider2D other)
@@ -77,7 +75,6 @@ public class PlayerController : PhysicsObject
     }
 
     private bool IsWater(Collider2D other) => other != null && other.CompareTag("water");
-    private bool IsGoal(Collider2D other)  => other != null && other.CompareTag("goal");
 
     private void ResetPlayer()
     {
