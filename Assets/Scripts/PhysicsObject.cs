@@ -17,8 +17,8 @@ public class PhysicsObject : MonoBehaviour
     [Range(0f, 0.01f)]
     public float separationEpsilon = 0.001f;
 
-    [System.NonSerialized] protected Rigidbody2D rb;
-    [System.NonSerialized] protected Collider2D col;
+    protected Rigidbody2D rb;
+    protected Collider2D col;
     protected bool grounded;
 
     // temp buffers

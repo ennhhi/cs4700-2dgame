@@ -15,11 +15,13 @@ public class PlayerController : PhysicsObject
     private float desiredX;
     private float coyoteTimer;
 
+    private Collider2D col;
     private readonly Collider2D[] contactBuffer = new Collider2D[16];
 
     protected override void Awake()
     {
         base.Awake();
+        col = GetComponent<Collider2D>();
         if (rb != null) rb.useFullKinematicContacts = true;
     }
 
@@ -50,7 +52,7 @@ public class PlayerController : PhysicsObject
         velocity.x = desiredX;
         base.FixedUpdate();
 
-        // Detect hazards even when idle
+        // Detect hazards/goals even when idle
         if (col != null)
         {
             int count = col.GetContacts(contactBuffer);
@@ -60,6 +62,7 @@ public class PlayerController : PhysicsObject
                 if (!other) continue;
 
                 if (IsWater(other)) { ResetPlayer(); break; }
+                if (IsGoal(other))  { Debug.Log("You win!"); }
             }
         }
     }
@@ -67,6 +70,7 @@ public class PlayerController : PhysicsObject
     public override void CollideWithVertical(Collider2D other, Vector2 normal)
     {
         if (IsWater(other)) ResetPlayer();
+        else if (IsGoal(other)) Debug.Log("You win!");
     }
 
     public override void CollideWithHorizontal(Collider2D other)
@@ -75,6 +79,7 @@ public class PlayerController : PhysicsObject
     }
 
     private bool IsWater(Collider2D other) => other != null && other.CompareTag("water");
+    private bool IsGoal(Collider2D other)  => other != null && other.CompareTag("goal");
 
     private void ResetPlayer()
     {
