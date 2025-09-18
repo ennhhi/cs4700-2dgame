@@ -21,14 +21,21 @@ public class PhysicsObject : MonoBehaviour
     protected Collider2D col;
     protected bool grounded;
 
+    private ContactFilter2D solidFilter;
+
     // temp buffers
     private readonly RaycastHit2D[] castHits = new RaycastHit2D[16];
     private readonly Collider2D[]   contactBuf = new Collider2D[16];
 
     protected virtual void Awake()
     {
-        rb  = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
+        
+        // Ignore triggers and respect the layer-collision matrix for this object
+        solidFilter.useTriggers = false;
+        solidFilter.useLayerMask = true;
+        solidFilter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
     }
 
     protected virtual void FixedUpdate()
@@ -36,7 +43,7 @@ public class PhysicsObject : MonoBehaviour
         grounded = false;
 
         // Gravity
-        velocity += Vector2.down * 9.81f * Time.fixedDeltaTime;
+        velocity += Vector2.down * 12f * Time.fixedDeltaTime;
 
         Vector2 delta = velocity * Time.fixedDeltaTime;
 
@@ -69,7 +76,7 @@ public class PhysicsObject : MonoBehaviour
         float dist  = move.magnitude;
         Vector2 dir = move.normalized;
 
-        int cnt = rb.Cast(dir, castHits, dist + castPadding);
+        int cnt = rb.Cast(dir, solidFilter, castHits, dist + castPadding);
 
         bool blockedHoriz = false;
         float cornerPushX = 0f;
@@ -124,7 +131,7 @@ public class PhysicsObject : MonoBehaviour
         if (!moveX && grounded && Mathf.Abs(cornerPushX) > 0f)
         {
             int sideHits = rb.Cast(new Vector2(Mathf.Sign(cornerPushX), 0f),
-                                   castHits, Mathf.Abs(cornerPushX) + castPadding);
+                                   solidFilter, castHits, Mathf.Abs(cornerPushX) + castPadding);
             if (sideHits == 0)
                 transform.position += new Vector3(cornerPushX, 0f, 0f);
         }
@@ -180,7 +187,7 @@ public class PhysicsObject : MonoBehaviour
         // Only snap when descending / idle, not when rising
         if (velocity.y > 0.05f || !col) return;
 
-        int cnt = rb.Cast(Vector2.down, castHits, groundSnapDistance);
+        int cnt = rb.Cast(Vector2.down, solidFilter, castHits, groundSnapDistance);
         for (int i = 0; i < cnt; i++)
         {
             var hit = castHits[i];
@@ -209,12 +216,12 @@ public class PhysicsObject : MonoBehaviour
         for (float up = inc; up <= maxStep; up += inc)
         {
             // Headroom check
-            int upCnt = rb.Cast(Vector2.up, castHits, up + castPadding);
+            int upCnt = rb.Cast(Vector2.up, solidFilter, castHits, up + castPadding);
             if (upCnt > 0) break;
 
             transform.position = start + new Vector3(0f, up, 0f);
 
-            int sideCnt = rb.Cast(horizDir, castHits, horizDist + castPadding);
+            int sideCnt = rb.Cast(horizDir, solidFilter, castHits, horizDist + castPadding);
             bool blocked = false;
             for (int i = 0; i < sideCnt; i++)
                 if (Mathf.Abs(castHits[i].normal.x) > 0.5f) { blocked = true; break; }

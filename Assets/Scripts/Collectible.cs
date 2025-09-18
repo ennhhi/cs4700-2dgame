@@ -51,6 +51,7 @@ public class Collectible : MonoBehaviour
             if (CollectibleCounter.I != null)
                 CollectibleCounter.I.Add(value);
 
+            if (Sfx.I) Sfx.I.PlayCollect();
             Destroy(gameObject);
         }
     }

@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour
     {
         if (winText)
         {
+            if (Sfx.I) Sfx.I.PlayWin();
             winText.text = "You Win!  (Press R to Restart)";
             winText.gameObject.SetActive(true);
         }

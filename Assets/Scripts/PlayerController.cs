@@ -54,6 +54,7 @@ public class PlayerController : PhysicsObject
         {
             velocity.y = jumpSpeed;
             coyoteTimer = 0f;
+            if (Sfx.I) Sfx.I.PlayJump();
         }
     }
 
@@ -93,6 +94,10 @@ public class PlayerController : PhysicsObject
 
     private void ResetPlayer()
     {
-        if (GameManager.I) { Time.timeScale = 1f; UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex); }
+        if (GameManager.I)
+        {
+            if (Sfx.I) Sfx.I.PlayDie();
+            Time.timeScale = 1f; UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        }
     }
 }

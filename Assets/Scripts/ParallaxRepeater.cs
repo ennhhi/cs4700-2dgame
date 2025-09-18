@@ -5,27 +5,38 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class ParallaxRepeater : MonoBehaviour
 {
-    public Transform follow; // usually Camera.main.transform
+    public Transform follow;       // usually the Main Camera
+    public int pixelsPerUnit = 64; // match your project
     private SpriteRenderer sr;
-    private float tileWidth;
+    private float tileWidth, upp;
 
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
         if (!follow) follow = Camera.main.transform;
+        upp = 1f / pixelsPerUnit;
 
-        // If Draw Mode is Tiled, sr.size.x is the world width we set in the Inspector.
-        // Otherwise fall back to bounds.
+        // Use the tiled size if available, else the renderer bounds
         tileWidth = (sr.drawMode == SpriteDrawMode.Tiled) ? sr.size.x : sr.bounds.size.x;
+
+        // Round to an integer number of pixels in world units
+        tileWidth = Mathf.Round(tileWidth / upp) * upp;
     }
 
     void LateUpdate()
     {
         float dx = follow.position.x - transform.position.x;
-        if (Mathf.Abs(dx) >= tileWidth * 0.5f)
+        float threshold = tileWidth * 0.5f - upp; // tiny buffer
+
+        if (dx > threshold || dx < -threshold)
         {
             float shift = tileWidth * Mathf.Sign(dx);
-            transform.position += new Vector3(shift, 0f, 0f);
+            float newX = transform.position.x + shift;
+
+            // snap to pixel grid
+            newX = Mathf.Round(newX / upp) * upp;
+
+            transform.position = new Vector3(newX, transform.position.y, transform.position.z);
         }
     }
 }
