@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
         if (winText)
         {
             if (Sfx.I) Sfx.I.PlayWin();
-            winText.text = "You Win!  (Press R to Restart)";
+            winText.text = "You Win!  (Press R to Play Again)";
             winText.gameObject.SetActive(true);
         }
         Time.timeScale = 0f; // pause the game

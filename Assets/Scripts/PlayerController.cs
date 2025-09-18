@@ -20,6 +20,7 @@ public class PlayerController : PhysicsObject
 
     private Collider2D col;
     private readonly Collider2D[] contactBuffer = new Collider2D[16];
+    private MovingPlatform ridingPlatform;
 
     protected override void Awake()
     {
@@ -75,12 +76,27 @@ public class PlayerController : PhysicsObject
                 if (IsGoal(other))  { if (GameManager.I) GameManager.I.TryWin(); }
             }
         }
+
+        // If we're grounded on a moving platform, apply its motion so we ride it
+        if (grounded && ridingPlatform != null)
+        {
+            transform.position += (Vector3)ridingPlatform.DeltaThisFrame;
+        }
+        else if (!grounded)
+        {
+            // Clear when we step off
+            ridingPlatform = null;
+        }
     }
 
     public override void CollideWithVertical(Collider2D other, Vector2 normal)
     {
-        if (IsWater(other)) ResetPlayer();
-        else if (IsGoal(other)) { if (GameManager.I) GameManager.I.TryWin(); }
+        if (IsWater(other)) { ResetPlayer(); return; }
+        if (IsGoal(other)) { if (GameManager.I) GameManager.I.TryWin(); return; }
+
+        // If we landed on top of something, see if it's a moving platform
+        if (normal.y > 0.5f)
+            ridingPlatform = other ? other.GetComponent<MovingPlatform>() : null;
     }
 
     public override void CollideWithHorizontal(Collider2D other)
@@ -98,6 +114,7 @@ public class PlayerController : PhysicsObject
         {
             if (Sfx.I) Sfx.I.PlayDie();
             Time.timeScale = 1f; UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+            ridingPlatform = null;
         }
     }
 }
