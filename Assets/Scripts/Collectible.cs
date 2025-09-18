@@ -8,16 +8,16 @@ public class Collectible : MonoBehaviour
     [Header("Value")]
     public int value = 1;
 
-    [Header("Visual Bob (affects child only)")]
-    public Transform visual;           // assign the child with the SpriteRenderer
+    [Header("Visual Bob (affects the assigned root and all its children)")]
+    public Transform visual;           // assign VisualRoot (the parent of both squares)
     public float bobAmplitude = 0.12f; // world units
     public float bobSpeed = 2.0f;      // cycles per second
 
-    Vector3 visualStartLocal;
+    Vector3 visualStartWorld;
+    Quaternion visualStartLocalRot;
 
     void Reset()
     {
-        // Make sure the collider is a trigger
         var c = GetComponent<Collider2D>();
         if (c) c.isTrigger = true;
     }
@@ -25,23 +25,27 @@ public class Collectible : MonoBehaviour
     void Start()
     {
         if (!visual && transform.childCount > 0) visual = transform.GetChild(0);
-        if (visual) visualStartLocal = visual.localPosition;
+        if (visual)
+        {
+            visualStartWorld    = visual.position;        // world-space bob => always vertical
+            visualStartLocalRot = visual.localRotation;   // preserve whatever rotation you set in Editor
+        }
     }
 
     void Update()
     {
-        if (visual)
-        {
-            float y = Mathf.Sin(Time.time * Mathf.PI * 2f * bobSpeed) * bobAmplitude;
-            visual.localPosition = visualStartLocal + new Vector3(0f, y, 0f);
-            // Keep the diamond tilted; remove this line if you don’t want it locked at 45°
-            visual.localRotation = Quaternion.Euler(0f, 0f, 45f);
-        }
+        if (!visual) return;
+
+        // Bob straight up/down in WORLD space (ignores local rotation)
+        float y = Mathf.Sin(Time.time * Mathf.PI * 2f * bobSpeed) * bobAmplitude;
+        visual.position = visualStartWorld + Vector3.up * y;
+
+        // Keep the rotation you set in the Editor (e.g., 0 on VisualRoot, 45° on child squares)
+        visual.localRotation = visualStartLocalRot;
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Count it if the Player touches
         if (other.GetComponent<PlayerController>() != null)
         {
             if (CollectibleCounter.I != null)

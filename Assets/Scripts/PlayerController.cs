@@ -9,6 +9,9 @@ public class PlayerController : PhysicsObject
     public float jumpSpeed = 6.5f;
     public float coyoteTime = 0.1f; // seconds
 
+    [Header("Death by falling")]
+    public float deathY = -12f; // set below your level
+
     [Header("Spawn")]
     public Vector3 startingPosition;
 
@@ -32,18 +35,25 @@ public class PlayerController : PhysicsObject
 
     void Update()
     {
-        // Update coyote timer based on last physics result
+        // Fall-off death 
+        if (transform.position.y < deathY)
+        {
+            ResetPlayer();
+            return;
+        }
+
+        // Update coyote timer from last physics result
         coyoteTimer = grounded ? coyoteTime : Mathf.Max(0f, coyoteTimer - Time.deltaTime);
 
         // Horizontal input
         float h = Input.GetAxisRaw("Horizontal");
         desiredX = (h > 0f) ? moveSpeed : (h < 0f ? -moveSpeed : 0f);
 
-        // Jump: allow while coyote timer is alive
+        // Jump
         if (Input.GetButtonDown("Jump") && coyoteTimer > 0f)
         {
             velocity.y = jumpSpeed;
-            coyoteTimer = 0f; // consume it
+            coyoteTimer = 0f;
         }
     }
 
@@ -52,7 +62,6 @@ public class PlayerController : PhysicsObject
         velocity.x = desiredX;
         base.FixedUpdate();
 
-        // Detect hazards/goals even when idle
         if (col != null)
         {
             int count = col.GetContacts(contactBuffer);
@@ -62,7 +71,7 @@ public class PlayerController : PhysicsObject
                 if (!other) continue;
 
                 if (IsWater(other)) { ResetPlayer(); break; }
-                if (IsGoal(other))  { Debug.Log("You win!"); }
+                if (IsGoal(other))  { if (GameManager.I) GameManager.I.TryWin(); }
             }
         }
     }
@@ -70,12 +79,13 @@ public class PlayerController : PhysicsObject
     public override void CollideWithVertical(Collider2D other, Vector2 normal)
     {
         if (IsWater(other)) ResetPlayer();
-        else if (IsGoal(other)) Debug.Log("You win!");
+        else if (IsGoal(other)) { if (GameManager.I) GameManager.I.TryWin(); }
     }
 
     public override void CollideWithHorizontal(Collider2D other)
     {
         if (IsWater(other)) ResetPlayer();
+        else if (IsGoal(other)) { if (GameManager.I) GameManager.I.TryWin(); }
     }
 
     private bool IsWater(Collider2D other) => other != null && other.CompareTag("water");
@@ -83,7 +93,6 @@ public class PlayerController : PhysicsObject
 
     private void ResetPlayer()
     {
-        transform.position = startingPosition;
-        velocity = Vector2.zero;
+        if (GameManager.I) { Time.timeScale = 1f; UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex); }
     }
 }
